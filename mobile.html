@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <title>Document</title>
+    <script>
+        tailwind.config={
+            theme:{
+                fontFamily:{
+                    'sans': ['ui-sans-serif', 'system-ui'],
+                    'serif': ['poppins', 'Georgia'],
+                    'mono': ['ui-monospace', 'SFMono-Regular'],
+            },
+        },
+    }
+    </script>
+</head>
+<body>
+<!--landing page-->
+
+    <div class="bg-neutral-100 flex flex-col relative h-auto">
+        
+        <!--header-->
+        <div class="fixed w-full h-16 flex items-center justify-between bg-white border-b-2">
+            <!--hamburger menu-->
+            <div id="hamburger-menu" class="md:hidden">
+                <button>
+                    <img src="icons/hamburger.svg" class="ml-[10px]" alt="">
+                </button>
+            </div>
+            <!--logo-->
+            <div class="w-1/5 md:ml-2">
+                <img class="" src="images/logo.png" alt="">
+            </div>
+             <!--log in button-->
+             <div id="loginBtn" class="flex justify-center mr-[8px] items-center">
+                <span class=" text-xm font-serif  text-blue-500 tracking-wide font-semibold ">Login</span>
+            </div>   
+        </div>  
+        <!--Middle container--> 
+       
+            
+            <div class="flex flex-row items-center mt-[64px] font-sans text-xm ">
+                <div class="flex w-1/2">
+                    <span class=" ml-[10px] font-semibold ">
+                        Explore talents here </span>
+                        <img src="images/explore.svg" alt="">
+
+                </div>
+                
+                
+                <div class="flex w-1/2 justify-end">
+                    <button class=" text-blue-500">
+                        see more
+                </div>
+            </div>
+            <!--content-->
+            <div class="flex flex-col items-start mr-72 ml-[551px] w-[400px] bg-blue-500 ">
+                <div class="relative mb-8">
+                    <!---explore talents--->
+                   <div class="">
+                      <img src="images/Frame 427319791.png" alt="">
+                    </div>
+                </div>
+                
+
+            </div>
+
+        <!--footer-->
+        <div class=" fixed sm:hidden bg-white border-t-2 border-gray-200 w-full left-0 p-2 bottom-0 right-0 h-11 ">
+            <div class="flex justify-around items-center">
+                <div>
+                    <img src="icons/home.svg" alt="">
+                </div>
+                <div>
+                    <img src="icons/Explore.svg" alt="">
+                </div>
+                <div>
+                    <img src="icons/create.svg" class="w-6" alt="">
+                </div>
+                <div>
+                    <img src="icons/reels.svg" alt="">
+                </div>
+                <div>
+                    <img src="images/profile.png" class="rounded-full w-6" alt="">
+                </div>
+         </div>
+        </div>
+    
+
+
+
+
+<!---->
+
+
+
+
+
+        <div  class="place-self-end flex w-[195px] h-[290px] bg-no-repeat  "
+                          style="background-image: url(images/image\ 149.svg);" >
+                          <div class="flex flex-row items-end justify-center ">
+                            <span class="flex pl-4 mr-4 text-sm text-white">Bharthnatyam</span>
+                            <div class="flex pr-4">
+                                <button class=" text-white border-solid border-2 border-slate-400 rounded-3xl p-2 pr-5 pl-5">
+                                    Dance
+                                </button>
+                            </div>
+                        </div>
+                        </div>
+
+
+
+
+                        <div  class="flex justify-center items-center h-[600px] w-full bg-no-repeat mb-[45px]"
+                  style="background-image: url(images/Frame\ 427319771.svg);" >
+
+</body>
+<div class="grid gap-4 grid-cols-2 grid-rows-2 bg-white w-full p-4 ">
+    <div class="flex flex-col pb-6 ">
+        <img src="images/Frame 427319812.svg" alt="" class="w-full">
+           <div class="flex flex-row items-center justify-center mt-[-60px] pr-4 pl-4">
+              <span class="flex pl-4 mr-4 text-sm text-white">Bharthanatyam</span>
+               <div class="flex pr-4">
+                   <button class=" text-white border-solid border-2 border-slate-700 rounded-3xl p-2 pr-6 pl-6">
+                      Dance 
+                    </button>
+                </div>
+            </div>
+    </div>
+    <div class="flex flex-col">
+        <img src="images/Frame 427319797 (1).svg" alt="" class="w-full">
+            <div class="flex flex-row items-center justify-center mt-[-60px] pr-4 pl-4">
+                <span class="flex pl-4 mr-4 text-sm text-white">Folk Song</span>
+              <div class="flex pr-4">
+                  <button class=" text-white border-solid border-2 border-slate-700 rounded-3xl p-2 pr-6 pl-6">
+                        Music
+                  </button>
+              </div>
+            </div>
+    </div>
+     <div class="flex flex-col">
+         <img src="images/image 179.svg" alt="" class="rounded-xl w-full">
+          <div class="flex flex-row items-center justify-center mt-[-60px] pr-4 pl-4">
+              <span class="flex pl-4 mr-4 text-sm text-white">Tabla</span>
+                <div class="flex pr-4">
+                    <button class=" text-white border-solid border-2 border-slate-700 rounded-3xl p-2 pr-6 pl-6">
+                        Instruments
+                    </button>
+                </div>
+           </div>
+       </div>
+  <div class="flex-flex-col">
+   <img src="images/image 149.svg" alt="" class="rounded-xl w-full ">
+     <div class="flex flex-row items-center justify-center mt-[-60px] pr-4 pl-4">
+       <span class="flex pl-4 mr-4 text-sm text-white">Abstract</span>
+       <div class="flex pr-4">
+          <button class="text-sm text-white border-solid border-2 border-slate-700 rounded-3xl p-2 pr-6 pl-6">
+              Art and Creativity
+           </button>
+        </div>
+    </div>
+  </div>
+
+ </div>
+    <div class="flex flex-col pb-12 items-center font-serif pt-10">
+       <button class="rounded-xl pt-2 pb-2 pl-16 pr-16 bg-blue-700 text-white hover:bg-blue-400 ">
+          <span class="text-xm font-medium">
+             EXPLORE MORE
+           </span>
+         </button>
+    </div>    
+</div>
+</div>        
+</div>
+    
+
+    
