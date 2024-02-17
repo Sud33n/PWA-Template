@@ -1,0 +1,49 @@
+body {
+  height: 100vh;
+  width: 100vw;
+  background-color:#dddddd;
+  margin: 0rem;
+}
+
+.imagelist {
+  display: flex;
+  gap: 4vmin;
+  height: 100vh;
+  position: absolute;
+  left: 5%;
+  top: 10%;
+  right : 5%;
+  padding-top: 20%;
+  /* transform: translate(0%, 10%);  */
+  user-select: none; 
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  justify-content: center;
+}
+  
+.imagelist > img {
+  max-width: 100%;
+  width: 40vmin;
+  height: 56vmin;
+  object-fit: cover;
+  object-position: 50% center;
+  border-radius: 15px;
+  opacity: 0.7;
+  transition: opacity 0.5s ease;
+}
+
+.snaps-inline {
+  scroll-snap-type: inline mandatory;
+} 
+
+.snaps-inline > * {
+  scroll-snap-align: center;
+}
+
+.imagelist > img.enlarged {
+  transform: scale(1.1); /* Enlarge the image */
+  transition: transform 0.8s ease, opacity 0.5s ease;
+  opacity: 1;
+  margin-left: 4vmin;
+  margin-right: 4vmin;
+}
