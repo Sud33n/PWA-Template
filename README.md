@@ -27,7 +27,7 @@ PWA Template/
 │   ├── icon-192x192.png
 │   ├── icon-512x512.png  
 │   └── *.svg
-├── LICENSE             # MIT License
+├── LICENSE             # The Unlicense
 ├── .gitignore          # Git ignore patterns
 └── README.md           # Documentation
 ```
@@ -60,9 +60,101 @@ PWA Template/
    - 💾 Use the storage demo to save/load encrypted data
    - 📱 Test on mobile devices for full experience
 
-## 💾 Storage Demo
+## 💾 Encrypted Storage
 
-The template includes a built-in storage demonstration:
+### Basic Usage
+
+The template includes a robust encrypted storage system with AES-256-GCM encryption:
+
+```javascript
+// Initialize storage
+const storage = new EncryptedStorage();
+
+// Save encrypted data
+const myData = { message: 'Hello, secure world!', timestamp: Date.now() };
+await storage.saveEncrypted('my-note', myData);
+
+// Load encrypted data  
+const loadedData = await storage.loadEncrypted('my-note');
+console.log(loadedData); // { message: 'Hello, secure world!', timestamp: 1234567890 }
+```
+
+### Password Protection
+
+```javascript
+// Save with password
+const sensitiveData = { 
+    accountNumber: '1234-5678-9012',
+    apiKey: 'secret-api-key-here'
+};
+await storage.saveEncrypted('sensitive-data', sensitiveData, 'myPassword123');
+
+// Load with password (required)
+const decrypted = await storage.loadEncrypted('sensitive-data', 'myPassword123');
+```
+
+### Storage Backend Options
+
+```javascript
+// Use localStorage (default)
+const localStorage = new EncryptedStorage({ backend: 'localStorage' });
+
+// Use IndexedDB for larger data
+const indexedStorage = new EncryptedStorage({ backend: 'indexedDB' });
+
+// Memory storage (session only)
+const memoryStorage = new EncryptedStorage({ backend: 'memory' });
+```
+
+### Advanced Examples
+
+```javascript
+// Custom configuration
+const storage = new EncryptedStorage({
+    keyName: 'my-app-key',     // Custom key storage name
+    backend: 'indexedDB',      // Storage backend
+    keySize: 256               // AES key size (256-bit)
+});
+
+// Encrypt/decrypt without storage
+const encrypted = await storage.encrypt('sensitive text', 'password');
+const decrypted = await storage.decrypt(encrypted, 'password');
+
+// Clean up all encrypted data
+await storage.clearAll();
+```
+
+### Error Handling
+
+```javascript
+try {
+    await storage.saveEncrypted('data-key', myData);
+    console.log('Data saved successfully');
+} catch (error) {
+    console.error('Failed to save data:', error.message);
+    // Handle encryption failure, storage quota exceeded, etc.
+}
+
+try {
+    const data = await storage.loadEncrypted('data-key', 'wrongPassword');
+} catch (error) {
+    console.error('Failed to decrypt:', error.message);
+    // Handle wrong password, corrupted data, etc.
+}
+```
+
+### Browser Compatibility
+
+The storage system automatically detects and adapts to browser capabilities:
+
+- **Modern browsers**: Uses Web Crypto API with AES-256-GCM
+- **Older browsers**: Falls back to XOR encryption  
+- **Storage**: Prefers localStorage, falls back to IndexedDB, then memory
+- **Encoding**: Uses TextEncoder/Decoder with fallbacks
+
+### Storage Demo Features
+
+The built-in demo showcases:
 
 - **Save**: Store text or JSON with optional password encryption
 - **Load**: Retrieve saved data (password required for encrypted items)  
@@ -70,6 +162,53 @@ The template includes a built-in storage demonstration:
 - **Import**: Restore from backup files
 - **Inspect**: View storage details and browser access instructions
 - **Clear**: Remove all stored data with confirmation
+
+### API Reference
+
+#### Constructor Options
+
+```javascript
+const storage = new EncryptedStorage({
+    keyName: 'pwa-encryption-key',  // Key storage identifier
+    backend: 'localStorage',        // 'localStorage' | 'indexedDB' | 'memory'
+    keySize: 256                    // AES key size: 128, 192, or 256 bits
+});
+```
+
+#### Core Methods
+
+| Method | Description | Parameters | Returns |
+|--------|-------------|------------|---------|
+| `saveEncrypted(key, data, password?)` | Save encrypted data | `key`: string, `data`: any, `password`: string? | `Promise<boolean>` |
+| `loadEncrypted(key, password?)` | Load and decrypt data | `key`: string, `password`: string? | `Promise<any \| null>` |
+| `encrypt(data, password?)` | Encrypt data without saving | `data`: any, `password`: string? | `Promise<string>` |
+| `decrypt(encryptedData, password?)` | Decrypt data | `encryptedData`: string, `password`: string? | `Promise<any>` |
+| `clearAll()` | Remove all encrypted data | none | `Promise<boolean>` |
+
+#### Utility Methods
+
+| Method | Description | Returns |
+|--------|-------------|---------|
+| `generateAndStoreKey(password?)` | Generate new encryption key | `Promise<Array<number>>` |
+| `isWebCryptoAvailable()` | Check Web Crypto API support | `boolean` |
+| `isLocalStorageAvailable()` | Check localStorage support | `boolean` |
+| `isIndexedDBAvailable()` | Check IndexedDB support | `boolean` |
+
+#### Feature Detection
+
+```javascript
+// Check what features are available
+console.log(storage.features);
+// {
+//     webCrypto: true,      // Web Crypto API available
+//     localStorage: true,   // localStorage available  
+//     indexedDB: true,      // IndexedDB available
+//     textEncoder: true     // TextEncoder available
+// }
+
+// Check encryption method being used
+console.log(storage.encryptionMethod); // 'webcrypto' or 'simple'
+```
 
 ## PWA Requirements Met
 
@@ -120,4 +259,4 @@ The template includes a built-in storage demonstration:
 
 ## License
 
-This template is free to use and modify for any purpose.
+This project is released into the public domain under [The Unlicense](https://unlicense.org). You are free to use, modify, distribute, or sell this software for any purpose without restriction.
