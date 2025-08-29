@@ -60,6 +60,36 @@
                 
                 <div id="demo-output" class="demo-output"></div>
             </section>
+            
+            <section class="cache-management">
+                <h3>Cache & Update Management</h3>
+                
+                <div class="cache-info">
+                    <div class="cache-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">App Version:</span>
+                            <span id="app-version" class="stat-value">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Cache Entries:</span>
+                            <span id="cache-entries" class="stat-value">Loading...</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Last Update Check:</span>
+                            <span id="last-check" class="stat-value">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cache-actions">
+                    <button id="check-update-btn" class="cache-btn check-btn">🔄 Check for Updates</button>
+                    <button id="clear-cache-btn" class="cache-btn clear-btn">🗑️ Clear All Caches</button>
+                    <button id="force-update-btn" class="cache-btn force-btn">⚡ Force Update</button>
+                    <button id="refresh-cache-info-btn" class="cache-btn refresh-btn">📊 Refresh Cache Info</button>
+                </div>
+                
+                <div id="cache-output" class="cache-output"></div>
+            </section>
         </main>
         
         <footer class="footer">

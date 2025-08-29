@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus('App loaded successfully!', 'success');
 });
 
-// Register Service Worker
+// Enhanced Service Worker Registration with Update Management
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
@@ -38,20 +38,11 @@ async function registerServiceWorker() {
             console.log('Service Worker registered successfully:', registration);
             updateStatus('✅ Service Worker registered successfully!', 'success');
             
-            // Listen for service worker updates
-            registration.addEventListener('updatefound', () => {
-                console.log('Service Worker update found');
-                const newWorker = registration.installing;
-                
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed') {
-                        if (navigator.serviceWorker.controller) {
-                            // New update available
-                            updateStatus('App update available! Refresh to update.', 'info');
-                        }
-                    }
-                });
-            });
+            // Set up enhanced update management
+            setupUpdateManagement(registration);
+            
+            // Set up service worker message handling
+            setupServiceWorkerMessaging();
             
         } catch (error) {
             console.error('Service Worker registration failed:', error);
@@ -68,6 +59,192 @@ async function registerServiceWorker() {
     }
 }
 
+// Enhanced Update Management
+function setupUpdateManagement(registration) {
+    // Listen for service worker updates
+    registration.addEventListener('updatefound', () => {
+        console.log('Service Worker update found');
+        const newWorker = registration.installing;
+        
+        newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+                if (navigator.serviceWorker.controller) {
+                    // New update available
+                    showUpdateNotification();
+                }
+            }
+        });
+    });
+    
+    // Check for updates periodically
+    setInterval(() => {
+        checkForUpdates(registration);
+    }, 30 * 60 * 1000); // Check every 30 minutes
+    
+    // Initial update check
+    setTimeout(() => {
+        checkForUpdates(registration);
+    }, 5000); // Check after 5 seconds
+}
+
+// Check for updates
+async function checkForUpdates(registration) {
+    try {
+        // Check version.json for updates
+        const response = await fetch('./version.json?t=' + Date.now(), {
+            cache: 'no-cache'
+        });
+        
+        if (response.ok) {
+            const versionData = await response.json();
+            console.log('Current version check:', versionData.version);
+            
+            // Store version info
+            localStorage.setItem('pwa-version', versionData.version);
+            localStorage.setItem('pwa-last-check', Date.now().toString());
+        }
+    } catch (error) {
+        console.warn('Update check failed:', error);
+    }
+}
+
+// Show update notification
+function showUpdateNotification() {
+    const updateDiv = document.createElement('div');
+    updateDiv.id = 'update-notification';
+    updateDiv.innerHTML = `
+        <div class="update-banner">
+            <div class="update-content">
+                <span>🔄 New version available!</span>
+                <div class="update-actions">
+                    <button onclick="applyUpdate()" class="update-btn primary">Update Now</button>
+                    <button onclick="dismissUpdate()" class="update-btn secondary">Later</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .update-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            z-index: 10000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: slideDown 0.3s ease-out;
+        }
+        .update-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .update-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .update-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .update-btn.primary {
+            background: #28a745;
+            color: white;
+        }
+        .update-btn.primary:hover {
+            background: #218838;
+        }
+        .update-btn.secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .update-btn.secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(updateDiv);
+    
+    updateStatus('🔄 New version available! Click "Update Now" to apply.', 'info');
+}
+
+// Apply update
+async function applyUpdate() {
+    try {
+        updateStatus('🔄 Applying update...', 'info');
+        
+        // Send message to service worker to force update
+        if (navigator.serviceWorker.controller) {
+            const channel = new MessageChannel();
+            channel.port1.onmessage = (event) => {
+                if (event.data.type === 'FORCE_UPDATE') {
+                    // Reload the page to apply update
+                    window.location.reload();
+                }
+            };
+            
+            navigator.serviceWorker.controller.postMessage({
+                type: 'FORCE_UPDATE'
+            }, [channel.port2]);
+        } else {
+            // Fallback: just reload
+            window.location.reload();
+        }
+    } catch (error) {
+        console.error('Update failed:', error);
+        updateStatus('❌ Update failed. Please refresh manually.', 'error');
+    }
+}
+
+// Dismiss update notification
+function dismissUpdate() {
+    const updateDiv = document.getElementById('update-notification');
+    if (updateDiv) {
+        updateDiv.remove();
+    }
+    updateStatus('Update dismissed. You can update later from the menu.', 'info');
+}
+
+// Setup Service Worker Message Handling
+function setupServiceWorkerMessaging() {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        const { data } = event;
+        
+        switch (data.type) {
+            case 'UPDATE_AVAILABLE':
+                console.log('Update available:', data);
+                showUpdateNotification();
+                break;
+                
+            case 'FORCE_UPDATE':
+                console.log('Force update requested');
+                window.location.reload();
+                break;
+                
+            case 'CACHE_CLEARED':
+                console.log('Cache cleared');
+                updateStatus('✅ Cache cleared successfully!', 'success');
+                break;
+        }
+    });
+}
+
 // Setup Event Listeners
 function setupEventListeners() {
     // Install button
@@ -81,8 +258,187 @@ function setupEventListeners() {
     window.addEventListener('online', handleOnlineStatus);
     window.addEventListener('offline', handleOfflineStatus);
     
+    // Cache management buttons
+    setupCacheManagementListeners();
+    
     // Check initial online status
     updateOnlineStatus();
+    
+    // Initialize cache info display
+    updateCacheInfoDisplay();
+}
+
+// Setup Cache Management Event Listeners
+function setupCacheManagementListeners() {
+    const checkUpdateBtn = document.getElementById('check-update-btn');
+    const clearCacheBtn = document.getElementById('clear-cache-btn');
+    const forceUpdateBtn = document.getElementById('force-update-btn');
+    const refreshCacheInfoBtn = document.getElementById('refresh-cache-info-btn');
+    
+    if (checkUpdateBtn) {
+        checkUpdateBtn.addEventListener('click', handleCheckUpdate);
+    }
+    
+    if (clearCacheBtn) {
+        clearCacheBtn.addEventListener('click', handleClearCache);
+    }
+    
+    if (forceUpdateBtn) {
+        forceUpdateBtn.addEventListener('click', handleForceUpdate);
+    }
+    
+    if (refreshCacheInfoBtn) {
+        refreshCacheInfoBtn.addEventListener('click', updateCacheInfoDisplay);
+    }
+}
+
+// Handle Check Update
+async function handleCheckUpdate() {
+    const output = document.getElementById('cache-output');
+    const btn = document.getElementById('check-update-btn');
+    
+    try {
+        btn.disabled = true;
+        btn.textContent = '🔄 Checking...';
+        
+        const updateInfo = await PWAUtils.checkForUpdates();
+        
+        if (updateInfo.error) {
+            showCacheOutput(`❌ Update check failed: ${updateInfo.error}`, true);
+        } else if (updateInfo.hasUpdate) {
+            showCacheOutput(`🔄 Update available!\n\nCurrent Version: ${updateInfo.currentVersion}\nNew Version: ${updateInfo.newVersion}\n\nChangelog:\n${updateInfo.changelog.map(item => `• ${item}`).join('\n')}`, false);
+            showUpdateNotification();
+        } else {
+            showCacheOutput(`✅ App is up to date!\n\nCurrent Version: ${updateInfo.currentVersion}\nLast Updated: ${updateInfo.lastUpdated}`, false);
+        }
+        
+        // Update cache info display
+        updateCacheInfoDisplay();
+        
+    } catch (error) {
+        showCacheOutput(`❌ Error checking for updates: ${error.message}`, true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 Check for Updates';
+    }
+}
+
+// Handle Clear Cache
+async function handleClearCache() {
+    const output = document.getElementById('cache-output');
+    const btn = document.getElementById('clear-cache-btn');
+    
+    const confirmed = confirm(
+        'Are you sure you want to clear all caches?\n\n' +
+        'This will:\n' +
+        '• Clear all cached files\n' +
+        '• Force a fresh download of all resources\n' +
+        '• May temporarily slow down the app\n\n' +
+        'This action cannot be undone!'
+    );
+    
+    if (!confirmed) {
+        showCacheOutput('Cache clear operation cancelled', false);
+        return;
+    }
+    
+    try {
+        btn.disabled = true;
+        btn.textContent = '🗑️ Clearing...';
+        
+        const result = await PWAUtils.clearAllCaches();
+        showCacheOutput(`✅ ${result}\n\nAll cached files have been removed.`, false);
+        
+        // Update cache info display
+        updateCacheInfoDisplay();
+        
+    } catch (error) {
+        showCacheOutput(`❌ Error clearing cache: ${error.message}`, true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🗑️ Clear All Caches';
+    }
+}
+
+// Handle Force Update
+async function handleForceUpdate() {
+    const btn = document.getElementById('force-update-btn');
+    
+    const confirmed = confirm(
+        'Are you sure you want to force an update?\n\n' +
+        'This will:\n' +
+        '• Clear all caches\n' +
+        '• Reload the page\n' +
+        '• Download fresh versions of all files\n\n' +
+        'This action cannot be undone!'
+    );
+    
+    if (!confirmed) {
+        showCacheOutput('Force update cancelled', false);
+        return;
+    }
+    
+    try {
+        btn.disabled = true;
+        btn.textContent = '⚡ Updating...';
+        
+        await PWAUtils.forceUpdate();
+        
+    } catch (error) {
+        showCacheOutput(`❌ Error forcing update: ${error.message}`, true);
+        btn.disabled = false;
+        btn.textContent = '⚡ Force Update';
+    }
+}
+
+// Update Cache Info Display
+async function updateCacheInfoDisplay() {
+    try {
+        // Update app version
+        const versionInfo = PWAUtils.getAppVersion();
+        const appVersionEl = document.getElementById('app-version');
+        if (appVersionEl) {
+            appVersionEl.textContent = versionInfo.version;
+        }
+        
+        // Update last check time
+        const lastCheckEl = document.getElementById('last-check');
+        if (lastCheckEl && versionInfo.lastCheck) {
+            const lastCheckDate = new Date(parseInt(versionInfo.lastCheck));
+            lastCheckEl.textContent = lastCheckDate.toLocaleString();
+        }
+        
+        // Update cache entries count
+        const cacheInfo = await PWAUtils.getCacheInfo();
+        const cacheEntriesEl = document.getElementById('cache-entries');
+        if (cacheEntriesEl) {
+            if (cacheInfo.error) {
+                cacheEntriesEl.textContent = 'N/A';
+            } else {
+                cacheEntriesEl.textContent = `${cacheInfo.totalEntries} entries in ${cacheInfo.totalCaches} caches`;
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error updating cache info display:', error);
+    }
+}
+
+// Show Cache Output
+function showCacheOutput(message, isError = false) {
+    const output = document.getElementById('cache-output');
+    const timestamp = new Date().toLocaleTimeString();
+    const prefix = isError ? '❌ ERROR' : '✅ SUCCESS';
+    const formattedMessage = `[${timestamp}] ${prefix}: ${message}`;
+    
+    if (output) {
+        output.textContent = formattedMessage;
+    } else {
+        console.log('Cache Output:', formattedMessage);
+    }
+    
+    // Also show in main status
+    updateStatus(message, isError ? 'error' : 'success');
 }
 
 
@@ -131,6 +487,9 @@ function handleBeforeInstallPrompt(event) {
 function handleAppInstalled(event) {
     console.log('PWA: App was installed', event);
     updateStatus('App installed successfully! 🎉', 'success');
+    
+    // Set install time
+    PWAUtils.setInstallTime();
     
     // Hide the install button
     installBtn.style.display = 'none';
@@ -203,7 +562,7 @@ function updateStatus(message, type = 'info') {
     }
 }
 
-// Utility functions for PWA features
+// Enhanced Utility functions for PWA features
 const PWAUtils = {
     // Check if app is installed
     isInstalled() {
@@ -275,6 +634,148 @@ const PWAUtils = {
             return notification;
         }
         return null;
+    },
+    
+    // Enhanced Cache Management
+    async getCacheInfo() {
+        if (!('caches' in window)) {
+            return { error: 'Cache API not supported' };
+        }
+        
+        try {
+            const cacheNames = await caches.keys();
+            const cacheInfo = [];
+            
+            for (const name of cacheNames) {
+                const cache = await caches.open(name);
+                const requests = await cache.keys();
+                cacheInfo.push({
+                    name,
+                    entryCount: requests.length,
+                    size: await this.calculateCacheSize(cache)
+                });
+            }
+            
+            return {
+                totalCaches: cacheNames.length,
+                caches: cacheInfo,
+                totalEntries: cacheInfo.reduce((sum, cache) => sum + cache.entryCount, 0)
+            };
+        } catch (error) {
+            console.error('Error getting cache info:', error);
+            return { error: error.message };
+        }
+    },
+    
+    async calculateCacheSize(cache) {
+        try {
+            const requests = await cache.keys();
+            let totalSize = 0;
+            
+            for (const request of requests) {
+                const response = await cache.match(request);
+                if (response) {
+                    const blob = await response.blob();
+                    totalSize += blob.size;
+                }
+            }
+            
+            return totalSize;
+        } catch (error) {
+            console.error('Error calculating cache size:', error);
+            return 0;
+        }
+    },
+    
+    async clearAllCaches() {
+        if (!('caches' in window)) {
+            throw new Error('Cache API not supported');
+        }
+        
+        try {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            
+            // Also clear service worker cache if available
+            if (navigator.serviceWorker.controller) {
+                const channel = new MessageChannel();
+                return new Promise((resolve, reject) => {
+                    channel.port1.onmessage = (event) => {
+                        if (event.data.success) {
+                            resolve('All caches cleared successfully');
+                        } else {
+                            reject(new Error('Failed to clear service worker cache'));
+                        }
+                    };
+                    
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'CLEAR_CACHE'
+                    }, [channel.port2]);
+                });
+            }
+            
+            return 'All caches cleared successfully';
+        } catch (error) {
+            console.error('Error clearing caches:', error);
+            throw error;
+        }
+    },
+    
+    async checkForUpdates() {
+        try {
+            const response = await fetch('./version.json?t=' + Date.now(), {
+                cache: 'no-cache'
+            });
+            
+            if (response.ok) {
+                const versionData = await response.json();
+                const currentVersion = localStorage.getItem('pwa-version') || 'unknown';
+                
+                return {
+                    hasUpdate: versionData.version !== currentVersion,
+                    currentVersion,
+                    newVersion: versionData.version,
+                    changelog: versionData.changelog || [],
+                    lastUpdated: versionData.lastUpdated
+                };
+            }
+            
+            return { error: 'Failed to fetch version info' };
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+            return { error: error.message };
+        }
+    },
+    
+    async forceUpdate() {
+        try {
+            // Clear all caches first
+            await this.clearAllCaches();
+            
+            // Reload the page
+            window.location.reload();
+            
+            return true;
+        } catch (error) {
+            console.error('Error forcing update:', error);
+            throw error;
+        }
+    },
+    
+    // Get app version info
+    getAppVersion() {
+        return {
+            version: localStorage.getItem('pwa-version') || 'unknown',
+            lastCheck: localStorage.getItem('pwa-last-check') || null,
+            installTime: localStorage.getItem('pwa-install-time') || null
+        };
+    },
+    
+    // Set app install time
+    setInstallTime() {
+        if (!localStorage.getItem('pwa-install-time')) {
+            localStorage.setItem('pwa-install-time', Date.now().toString());
+        }
     }
 };
 

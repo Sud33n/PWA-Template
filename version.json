@@ -1,0 +1,22 @@
+{
+  "version": "4.0.0",
+  "buildTime": 1703123456789,
+  "lastUpdated": "2024-01-01T00:00:00.000Z",
+  "changelog": [
+    "Enhanced auto-updater and cache manager",
+    "Improved browser caching strategy",
+    "Added version control and update notifications",
+    "Better offline support and cache management"
+  ],
+  "features": {
+    "autoUpdate": true,
+    "cacheManagement": true,
+    "offlineSupport": true,
+    "updateNotifications": true
+  },
+  "cacheConfig": {
+    "maxAge": 604800000,
+    "maxEntries": 100,
+    "checkInterval": 1800000
+  }
+}
